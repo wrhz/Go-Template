@@ -8,6 +8,7 @@ import (
 	"os/exec"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/mlctrez/wasmexec"
 )
 
 func handleElement(w *bufio.Writer, r io.Reader, tagName string) (string, error) {
@@ -32,7 +33,7 @@ func handleElement(w *bufio.Writer, r io.Reader, tagName string) (string, error)
     return text, nil
 }
 
-func gt(filePath string, cachePath string, htmlPath string) {
+func gt(wasmExecJSFilePath string, filePath string, cachePath string, htmlPath string) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		fmt.Printf("Cannot open file: %v\n", err)
@@ -82,6 +83,28 @@ func gt(filePath string, cachePath string, htmlPath string) {
 	goPath := os.Getenv("GOPATH")
 	if goPath == "" {
 		fmt.Println("GOPATH is not set")
+		return
+	}
+
+	content, err := wasmexec.Current()
+
+	if err != nil {
+		fmt.Printf("Error getting wasm_exec.js content: %v\n", err)
+		return
+	}
+
+	wasmExecJSFile, err := os.Create(wasmExecJSFilePath)
+	if err != nil {
+		fmt.Printf("Cannot create wasm_exec.js file: %v\n", err)
+		return
+	}
+
+	defer wasmExecJSFile.Close()
+
+	_, err = wasmExecJSFile.Write(content)
+
+	if err != nil {
+		fmt.Printf("Error writing wasm_exec.js content: %v\n", err)
 		return
 	}
 
